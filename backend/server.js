@@ -142,4 +142,9 @@ app.get(
     }
 );
 
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+});
+
 app.listen(5000, () => console.log('Server running on http://localhost:5000'));
