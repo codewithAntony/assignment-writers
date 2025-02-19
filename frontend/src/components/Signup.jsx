@@ -17,17 +17,6 @@ const LoginForm = () => {
             .then((result) => console.log(result))
             .catch((err) => console.log(err));
     };
-    // const handleLogin = async (e) => {
-    //     e.preventDefault();
-    //     try {
-    //         const response = await axios.post('http://localhost:5000/api/login', { username, password });
-    //         if (response.data.success) {
-    //             navigate('/dashboard'); // Redirect to dashboard after login
-    //         }
-    //     } catch (error) {
-    //         console.error('Login failed:', error);
-    //     }
-    // };
 
     // const handleGoogleLogin = async (credentialResponse) => {
     //     try {
