@@ -1,21 +1,46 @@
 import React, { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 // import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 
 const LoginForm = () => {
-    const [name, setName] = useState();
-    const [password, setPassword] = useState();
-    const [email, setEmail] = useState();
-    // const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: ''
+    });
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        axios
-            .post('http://localhost:3001/signup', { name, email, password })
-            .then((result) => console.log(result))
-            .catch((err) => console.log(err));
+        setLoading(true);
+
+        try {
+            const response = await axios.post(
+                'http://localhost:3001/signup',
+                formData
+            );
+
+            if (response.data.token) {
+                toast.success('Account created successfully!');
+                setTimeout(() => navigate('/login', 1500));
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.error || 'Registration failed');
+        } finally {
+            setLoading(false);
+        }
     };
 
     // const handleGoogleLogin = async (credentialResponse) => {
@@ -42,9 +67,12 @@ const LoginForm = () => {
                         </label>
                         <input
                             type="text"
+                            name="name"
                             className="w-full p-2 border rounded"
                             placeholder="Enter Name"
-                            onChange={(e) => setName(e.target.value)}
+                            onChange={handleChange}
+                            required
+                            minLength={2}
                         />
                     </div>
                     <div className="mb-4">
@@ -53,9 +81,11 @@ const LoginForm = () => {
                         </label>
                         <input
                             type="email"
+                            name="email"
                             className="w-full p-2 border rounded"
                             placeholder="Enter Email"
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={handleChange}
+                            required
                         />
                     </div>
                     <div className="mb-4">
@@ -64,9 +94,12 @@ const LoginForm = () => {
                         </label>
                         <input
                             type="password"
+                            name="password"
                             className="w-full p-2 border rounded"
                             placeholder="Enter Password"
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={handleChange}
+                            required
+                            minLength={6}
                         />
                         {/* <button
                             type="button"
@@ -78,9 +111,14 @@ const LoginForm = () => {
                     </div>
                     <button
                         type="submit"
-                        className="w-full bg-blue-500 text-white p-2 rounded mb-4"
+                        disabled={loading}
+                        className={`w-full text-white p-2 rounded ${
+                            loading
+                                ? 'bg-blue-300 cursor-not-allowed'
+                                : 'bg-blue-500 hover:bg-blue-600'
+                        }`}
                     >
-                        Register
+                        {loading ? 'Creating Account...' : 'Register'}
                     </button>
                 </form>
                 {/* <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
@@ -97,6 +135,7 @@ const LoginForm = () => {
                     </Link>
                 </div>
             </div>
+            <ToastContainer position="top-right" />
         </div>
     );
 };

@@ -1,26 +1,47 @@
 import React, { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 // import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 
 const LoginForm = () => {
-    // const [username, setUsername] = useState('');
-    // const [password, setPassword] = useState('');
-    // const [showPassword, setShowPassword] = useState(false);
-    // const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+        email: '',
+        password: ''
+    });
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
-    // const handleLogin = async (e) => {
-    //     e.preventDefault();
-    //     try {
-    //         const response = await axios.post('http://localhost:5000/api/login', { username, password });
-    //         if (response.data.success) {
-    //             navigate('/dashboard'); // Redirect to dashboard after login
-    //         }
-    //     } catch (error) {
-    //         console.error('Login failed:', error);
-    //     }
-    // };
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            const response = await axios.post(
+                'http://localhost:3001/login',
+                formData
+            );
+
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                toast.success('Login successful!');
+                setTimeout(() => navigate('/dashboard', 1500));
+            }
+        } catch (error) {
+            toast.error(error.response?.data || 'Login failed');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // const handleGoogleLogin = async (credentialResponse) => {
     //     try {
@@ -41,16 +62,17 @@ const LoginForm = () => {
                 <h2 className="text-2xl font-bold mb-6">
                     LOGIN TO YOUR ACCOUNT
                 </h2>
-                <form>
+                <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-2">
-                            Username or Email
+                            Email
                         </label>
                         <input
-                            type="text"
+                            type="email"
+                            name="email"
                             className="w-full p-2 border rounded"
-                            // value={username}
-                            // onChange={(e) => setUsername(e.target.value)}
+                            placeholder="Enter Email"
+                            onChange={handleChange}
                             required
                         />
                     </div>
@@ -59,10 +81,11 @@ const LoginForm = () => {
                             Password
                         </label>
                         <input
-                            // type={showPassword ? 'text' : 'password'}
+                            type="password"
+                            name="password"
                             className="w-full p-2 border rounded"
-                            // value={password}
-                            // onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter Password"
+                            onChange={handleChange}
                             required
                         />
                         {/* <button
@@ -75,9 +98,14 @@ const LoginForm = () => {
                     </div>
                     <button
                         type="submit"
-                        className="w-full bg-blue-500 text-white p-2 rounded mb-4"
+                        disabled={loading}
+                        className={`w-full text-white p-2 rounded ${
+                            loading
+                                ? 'bg-blue-300 cursor-not-allowed'
+                                : 'bg-blue-500 hover:bg-blue-600'
+                        }`}
                     >
-                        Login
+                        {loading ? 'Logging in...' : 'Login'}
                     </button>
                 </form>
                 {/* <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
@@ -98,6 +126,7 @@ const LoginForm = () => {
                     </Link>
                 </div>
             </div>
+            <ToastContainer position="top-right" />
         </div>
     );
 };
