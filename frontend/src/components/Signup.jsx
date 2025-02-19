@@ -1,15 +1,22 @@
 import React, { useState } from 'react';
 // import { useNavigate } from 'react-router-dom';
-// import axios from 'axios';
+import axios from 'axios';
 // import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { Link } from 'react-router';
 
 const LoginForm = () => {
-    // const [username, setUsername] = useState('');
-    // const [password, setPassword] = useState('');
-    // const [showPassword, setShowPassword] = useState(false);
+    const [name, setName] = useState();
+    const [password, setPassword] = useState();
+    const [email, setEmail] = useState();
     // const navigate = useNavigate();
 
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        axios
+            .post('http://localhost:3001/signup', { name, email, password })
+            .then((result) => console.log(result))
+            .catch((err) => console.log(err));
+    };
     // const handleLogin = async (e) => {
     //     e.preventDefault();
     //     try {
@@ -38,20 +45,28 @@ const LoginForm = () => {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
             <div className="bg-white p-8 rounded-lg shadow-md w-96">
-                <h2 className="text-2xl font-bold mb-6">
-                    LOGIN TO YOUR ACCOUNT
-                </h2>
-                <form>
+                <h2 className="text-2xl font-bold mb-6">REGISTER ACCOUNT</h2>
+                <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label className="block text-sm font-medium mb-2">
-                            Username or Email
+                            Username
                         </label>
                         <input
                             type="text"
                             className="w-full p-2 border rounded"
-                            // value={username}
-                            // onChange={(e) => setUsername(e.target.value)}
-                            required
+                            placeholder="Enter Name"
+                            onChange={(e) => setName(e.target.value)}
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-2">
+                            Email
+                        </label>
+                        <input
+                            type="email"
+                            className="w-full p-2 border rounded"
+                            placeholder="Enter Email"
+                            onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
                     <div className="mb-4">
@@ -59,11 +74,10 @@ const LoginForm = () => {
                             Password
                         </label>
                         <input
-                            // type={showPassword ? 'text' : 'password'}
+                            type="password"
                             className="w-full p-2 border rounded"
-                            // value={password}
-                            // onChange={(e) => setPassword(e.target.value)}
-                            required
+                            placeholder="Enter Password"
+                            onChange={(e) => setPassword(e.target.value)}
                         />
                         {/* <button
                             type="button"
@@ -77,7 +91,7 @@ const LoginForm = () => {
                         type="submit"
                         className="w-full bg-blue-500 text-white p-2 rounded mb-4"
                     >
-                        Login
+                        Register
                     </button>
                 </form>
                 {/* <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
@@ -86,15 +100,11 @@ const LoginForm = () => {
                         onError={() => console.error('Google login failed')}
                     />
                 </GoogleOAuthProvider> */}
-                <div className="mt-4 text-center">
-                    <a href="/forgot-password" className="text-blue-500">
-                        Forgot Password?
-                    </a>
-                </div>
+
                 <div className="mt-2 text-center">
-                    <span>Don’t have an account? </span>
-                    <Link to="/signup" className="text-blue-500">
-                        Register
+                    <span>Have an account? </span>
+                    <Link to="/login" className="text-blue-500">
+                        Login
                     </Link>
                 </div>
             </div>

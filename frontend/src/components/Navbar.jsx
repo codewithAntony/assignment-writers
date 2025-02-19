@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { HashLink as Link } from 'react-router-hash-link';
 
 function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
+    const navigate = useNavigate()
 
     const toggleMenu = () => {
         setIsOpen(!isOpen);
     };
+
+    const handleLoginClick = () => {
+        navigate('/login')
+    }
+
+    const handleSignupClick = () => {
+        navigate('/signup')
+    }
 
     return (
         <div className="bg-[#28251F]">
@@ -86,7 +96,10 @@ function Navbar() {
                     </div>
 
                     <div className="hidden md:flex gap-3">
-                        <button className="text-white border border-white rounded-lg px-5 py-2">
+                        <button
+                            className="text-white border border-white rounded-lg px-5 py-2"
+                            onClick={handleLoginClick}
+                        >
                             Log In
                         </button>
                         <button className="text-white border border-white rounded-lg px-5 py-2">
@@ -120,8 +133,14 @@ function Navbar() {
                             </Link>
                         </div>
                         <div className="flex flex-col gap-3 mt-4">
-                            <button className="text-white">Log In</button>
-                            <button className="text-white">Sign Up</button>
+                            <button
+                                className="text-white"
+                                onClick={handleLoginClick}
+                            >
+                                Log In
+                            </button>
+                            <button className="text-white"
+                            onClick={handleSignupClick}>Sign Up</button>
                         </div>
                     </div>
                 )}
