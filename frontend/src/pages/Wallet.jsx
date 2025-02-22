@@ -1,43 +1,59 @@
-import { Search } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 
-const Wallet = () => {
+function Wallet() {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [timeFilter, setTimeFilter] = useState('This week');
+
     return (
-        <div className="animate-page">
+        <div>
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold">Total Balance</h1>
-                    <p className="text-4xl font-bold text-teal-200 mt-2">
+                    <h2 className="text-2xl font-bold mb-2">Total Balance</h2>
+                    <p className="text-3xl font-bold text-emerald-500">
                         KES 0.00
                     </p>
                 </div>
-                <button className="bg-teal-200 hover:bg-teal-600 text-white px-6 py-2 rounded-lg transition-colors">
+                <button className="bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600">
                     Add Funds
                 </button>
             </div>
 
-            <div className="glass rounded-xl p-6">
-                <h2 className="text-xl font-semibold mb-4">Transactions</h2>
-                <div className="mb-4">
-                    <div className="relative">
-                        <Search
-                            className="absolute left-3 top-1/2 transform translate-y-1/2 text-gray-400"
-                            size={20}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Search transactions"
-                            className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-50"
-                        />
-                    </div>
+            <div className="bg-gray-800 rounded-lg p-6">
+                <h3 className="text-xl font-bold mb-4">Transactions</h3>
+
+                <div className="flex justify-between items-center mb-6">
+                    <input
+                        type="text"
+                        placeholder="Search for transactions"
+                        className="bg-gray-700 text-white px-4 py-2 rounded-lg w-64"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+
+                    <select
+                        className="bg-gray-700 text-white px-4 py-2 rounded-lg"
+                        value={timeFilter}
+                        onChange={(e) => setTimeFilter(e.target.value)}
+                    >
+                        <option>This week</option>
+                        <option>This month</option>
+                        <option>This year</option>
+                    </select>
                 </div>
 
-                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-                    <p>No transactions found</p>
-                </div>
+                <table className="w-full">
+                    <thead>
+                        <tr className="text-left text-gray-400">
+                            <th className="pb-4">DESCRIPTION</th>
+                            <th className="pb-4">DATE</th>
+                            <th className="pb-4 text-right">AMOUNT</th>
+                        </tr>
+                    </thead>
+                    <tbody>{/* Add transaction rows here */}</tbody>
+                </table>
             </div>
         </div>
     );
-};
+}
 
 export default Wallet;
