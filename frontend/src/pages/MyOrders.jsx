@@ -1,12 +1,22 @@
 import React from 'react';
 import { ClockIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 
 function MyOrders() {
+    const navigate = useNavigate();
+
+    const handleCreateOrder = () => {
+        navigate('/dashboard/create-order');
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold">Recent Orders</h1>
-                <button className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+                <button
+                    onClick={handleCreateOrder}
+                    className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
+                >
                     Create Order
                 </button>
             </div>

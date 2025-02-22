@@ -19,16 +19,17 @@ function Layout() {
 
     const menuItems = [
         { path: '/', icon: HomeIcon, label: 'Home' },
-        { path: '/', icon: Square3Stack3DIcon, label: 'Dashboard' },
-        { path: '/wallet', icon: WalletIcon, label: 'Wallet' },
-        { path: '/my-orders', icon: ShoppingCartIcon, label: 'My Orders' },
+        { path: '/dashboard', icon: Square3Stack3DIcon, label: 'Dashboard' },
+        { path: '/dashboard/wallet', icon: WalletIcon, label: 'Wallet' },
+        { path: '/dashboard/my-orders', icon: ShoppingCartIcon, label: 'My Orders' },
         {
-            path: '/create-order',
+            path: '/dashboard/create-order',
             icon: DocumentPlusIcon,
             label: 'Create Order'
         },
-        { path: '/messages', icon: EnvelopeIcon, label: 'Messages', badge: '0' }
+        { path: '/dashboard/messages', icon: EnvelopeIcon, label: 'Messages', badge: '0' }
     ];
+
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">

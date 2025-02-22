@@ -5,8 +5,15 @@ import {
     CheckCircleIcon,
     ClockIcon
 } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 
 function Dashboard() {
+    const navigate = useNavigate();
+
+    const handleCreateOrder = () => {
+        navigate('/dashboard/create-order')
+    }
+
     return (
         <div>
             <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
@@ -62,7 +69,7 @@ function Dashboard() {
             <div className="bg-gray-800 rounded-lg p-6">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-xl font-bold">Recent Orders</h2>
-                    <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                    <button onClick={handleCreateOrder} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
                         Create Order
                     </button>
                 </div>
