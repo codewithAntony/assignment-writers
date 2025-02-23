@@ -8,24 +8,24 @@ function CreateOrder() {
     const [writingLevel, setWritingLevel] = useState('');
     const [selectedCourse, setSelectedCourse] = useState('');
     const [selectedServices, setSelectedServices] = useState('');
-    const [spacing, setSpacing] = useState('')
-    const [file, setFile] = useState(null)
+    const [spacing, setSpacing] = useState('');
+    const [file, setFile] = useState(null);
     const [deadline, setDeadline] = useState(null);
 
     const handleDrop = (event) => {
-        event.preventDefault()
-        const droppedFile = event.dataTransfer.files[0]
-        setFile(droppedFile)
-    }
+        event.preventDefault();
+        const droppedFile = event.dataTransfer.files[0];
+        setFile(droppedFile);
+    };
 
     const handleFileChange = (event) => {
-        const selectedFile = event.target.files[0]
-        setFile(selectedFile)
-    }
+        const selectedFile = event.target.files[0];
+        setFile(selectedFile);
+    };
 
     const preventDefault = (event) => {
-        event.preventDefault()
-    }
+        event.preventDefault();
+    };
 
     const handleCreateOrder = () => {
         navigate('/dashboard/create-order');
@@ -129,12 +129,11 @@ function CreateOrder() {
     return (
         <div className="max-w-4xl">
             <h1 className="text-3xl font-bold mb-8">Select Your Order Type</h1>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <button
                     className={`p-6 rounded-lg text-left ${
                         orderType === 'non-technical'
-                            ? 'bg-orange-500'
+                            ? 'bg-gray-700'
                             : 'bg-gray-800'
                     }`}
                     onClick={() => setOrderType('non-technical')}
@@ -164,7 +163,6 @@ function CreateOrder() {
                     </p>
                 </button>
             </div>
-
             {orderType === 'non-technical' && (
                 <div>
                     <h2 className="text-2xl font-bold mb-6">
@@ -295,9 +293,7 @@ function CreateOrder() {
                                                     ? 'bg-blue-500 text-white'
                                                     : 'bg-gray-800 hover:bg-gray-700'
                                             }`}
-                                            onClick={() =>
-                                                setSpacing(level)
-                                            }
+                                            onClick={() => setSpacing(level)}
                                         >
                                             {level}
                                         </button>
@@ -345,7 +341,9 @@ function CreateOrder() {
                             <label className="block text-lg font-semibold mb-4">
                                 Essay Details
                             </label>
-                            <p className="text-white text-sm mb-2">Description</p>
+                            <p className="text-white text-sm mb-2">
+                                Description
+                            </p>
                             <textarea
                                 placeholder="Describe your essay requirements in details"
                                 className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg h-32"
@@ -377,36 +375,167 @@ function CreateOrder() {
                                 placeholderText="Select deadline"
                             />
                         </div>
-<div>
-    <label className="block text-lg font-semibold my-4">
+
+                        <div>
+                            <label className="block text-lg font-semibold my-4">
                                 Essay Details
                             </label>
-                            <div className="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center cursor-pointer bg-gray-900 text-white" onDrop={handleDrop} onDragOver={preventDefault} onDragEnter={preventDefault} onDragLeave={preventDefault}>
-                            
+                            <div
+                                className="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center cursor-pointer bg-gray-900 text-white"
+                                onDrop={handleDrop}
+                                onDragOver={preventDefault}
+                                onDragEnter={preventDefault}
+                                onDragLeave={preventDefault}
+                            >
+                                <input
+                                    type="file"
+                                    id="fileInput"
+                                    className="hidden"
+                                    onChange={handleFileChange}
+                                />
+                                <label
+                                    htmlFor="fileInput"
+                                    className="block cursor-pointer"
+                                >
+                                    <p className="text-lg font-semibold">
+                                        Drag and Drop your files
+                                    </p>
+                                    <p className="text-sm text-gray-400 mt-2">
+                                        Or Click here to upload
+                                    </p>
+                                </label>
+                                {file && (
+                                    <p className="text-green-400 mt-4">
+                                        Selected File: {file.name}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleCreateOrder}
+                            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
+                        >
+                            Create Order
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {orderType === 'technical' && (
+                <div>
+                    <h2 className="text-2xl font-bold mb-6">
+                        Create Technical Assignment
+                    </h2>
+
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-lg font-semibold ">
+                                Basic Information
+                            </label>
+                            <p className="text-white text-sm mt-3 mb-1">
+                                Title
+                            </p>
                             <input
-                            type="file"
-                            id="fileInput"
-                            className="hidden"
-                            onChange={handleFileChange}
+                                type="text"
+                                placeholder="Enter Your essay title"
+                                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
                             />
-                            <label htmlFor="fileInput" className="block cursor-pointer">
-<p className="text-lg font-semibold">Drag and Drop your files</p>
-<p className="text-sm text-gray-400 mt-2">Or Click here to upload</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-lg font-semibold mt-6 mb-1">
+                            Essay Details
+                        </label>
+                        <p className="text-white text-sm mb-2">Description</p>
+                        <textarea
+                            placeholder="Describe your essay requirements in details"
+                            className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg h-32"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-lg font-semibold mt-6 mb-1">
+                            Price
+                        </label>
+                        <input
+                            type="number"
+                            defaultValue={250}
+                            min={250}
+                            className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
+                        />
+                        <p className="text-white text-sm mt-6 mb-1">
+                            Min: KES 250
+                        </p>
+                    </div>
+
+                    <div className="w-full">
+                        <DatePicker
+                            selected={deadline}
+                            onChange={(date) => setDeadline(date)}
+                            minDate={new Date()}
+                            dateFormat="yyyy-MM-dd"
+                            className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
+                            placeholderText="Select deadline"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-lg font-semibold mt-6 mb-1">
+                            Amount of Assignment
+                        </label>
+                        <p className="text-white text-sm mb-2">Amount</p>
+                        <input
+                            type="number"
+                            defaultValue={1}
+                            min={1}
+                            className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
+                        />
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block text-lg font-semibold mt-6 mb-1">
+                            Essay Details
+                        </label>
+                        <div
+                            className="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center cursor-pointer bg-gray-900 text-white"
+                            onDrop={handleDrop}
+                            onDragOver={preventDefault}
+                            onDragEnter={preventDefault}
+                            onDragLeave={preventDefault}
+                        >
+                            <input
+                                type="file"
+                                id="fileInput"
+                                className="hidden"
+                                onChange={handleFileChange}
+                            />
+                            <label
+                                htmlFor="fileInput"
+                                className="block cursor-pointer"
+                            >
+                                <p className="text-lg font-semibold">
+                                    Drag and Drop your files
+                                </p>
+                                <p className="text-sm text-gray-400 mt-2">
+                                    Or Click here to upload
+                                </p>
                             </label>
                             {file && (
-                                <p className="text-green-400 mt-4">Selected File: {file.name}</p>
+                                <p className="text-green-400 mt-4">
+                                    Selected File: {file.name}
+                                </p>
                             )}
                         </div>
-</div>
-
-<button
-                    onClick={handleCreateOrder}
-                    className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
-                >
-                    Create Order
-                </button>
-                        
                     </div>
+
+                    <button
+                        onClick={handleCreateOrder}
+                        className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
+                    >
+                        Create Assignment
+                    </button>
                 </div>
             )}
         </div>
