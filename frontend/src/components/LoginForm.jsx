@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 // import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
+import { useAuth } from '../context/AuthContext';
 
 const LoginForm = () => {
     const [formData, setFormData] = useState({
@@ -13,6 +14,8 @@ const LoginForm = () => {
     });
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    const { login } = useAuth();
 
     const handleChange = (e) => {
         setFormData({
@@ -32,12 +35,13 @@ const LoginForm = () => {
             );
 
             if (response.data.token) {
-                localStorage.setItem('token', response.data.token);
+                login(response.data.token);
                 toast.success('Login successful!');
-                setTimeout(() => navigate('/dashboard', 1500));
+                const from = location.state?.from?.pathname || '/dashboard';
+                setTimeout(() => navigate(from), 1500);
             }
         } catch (error) {
-            toast.error(error.response?.data || 'Login failed');
+            toast.error(error.response?.data?.message || 'Login failed');
         } finally {
             setLoading(false);
         }

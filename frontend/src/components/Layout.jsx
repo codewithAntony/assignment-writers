@@ -11,12 +11,14 @@ import {
     Bars3Icon,
     XMarkIcon
 } from '@heroicons/react/24/outline';
+import { useAuth } from '../context/AuthContext';
 
 function Layout() {
     const location = useLocation();
     const isActive = (path) => location.pathname === path;
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const navigate = useNavigate();
+    const { logout } = useAuth();
 
     const menuItems = [
         { path: '/', icon: HomeIcon, label: 'Home' },
@@ -44,8 +46,8 @@ function Layout() {
         setIsSidebarOpen(!isSidebarOpen);
     };
 
-    const logoutButton = () => {
-        navigate('/');
+    const handleLogout = () => {
+        logout();
     };
 
     return (
@@ -101,7 +103,7 @@ function Layout() {
 
                     <button
                         className="w-full flex items-center space-x-3 px-4 py-3 text-gray-400 hover:bg-gray-800 rounded-lg mt-auto"
-                        onClick={logoutButton}
+                        onClick={handleLogout}
                     >
                         <ArrowRightOnRectangleIcon className="h-6 w-6" />
                         <span>Logout</span>

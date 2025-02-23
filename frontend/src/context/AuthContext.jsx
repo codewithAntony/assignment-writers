@@ -7,11 +7,13 @@ export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const navigate = useNavigate();
 
-    const login = () => {
+    const login = (token) => {
+        localStorage.setItem('token', token);
         setIsAuthenticated(true);
     };
 
     const logout = () => {
+        localStorage.removeItem('token');
         setIsAuthenticated(false);
         navigate('/');
     };
