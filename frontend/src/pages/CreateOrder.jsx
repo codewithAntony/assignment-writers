@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import emailjs from '@emailjs/browser';
 
 function CreateOrder() {
     const [orderType, setOrderType] = useState('non-technical');
@@ -11,6 +15,108 @@ function CreateOrder() {
     const [spacing, setSpacing] = useState('');
     const [file, setFile] = useState(null);
     const [deadline, setDeadline] = useState(null);
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        title: '',
+        description: '',
+        price: 250,
+        amount: 1
+    });
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const sendEmailNotification = async (orderDetails) => {
+        try {
+        const templateParams = {
+            to_name: 'Admin', 
+            from_name: 'Order System', 
+            order_type: orderType,
+            academic_level: academicLevel,
+            title: formData.title,
+            course: selectedCourse,
+            service: selectedServices,
+            writing_level: writingLevel,
+            spacing: spacing,
+            description: formData.description,
+            deadline: deadline ? deadline.toLocaleString() : 'Not specified',
+            price: formData.price,
+            to_email: "antonymurithi51@gmail.com"
+        }
+
+        const response = await emailjs.send(
+            import.meta.env.VITE_SERVICE_ID,
+            import.meta.env.VITE_TEMPLATE_ID,
+            templateParams,
+            import.meta.env.VITE_PUBLIC_KEY
+        );
+
+        if (response.status === 200) {
+            console.log('Email notification sent successfully');
+        }
+    } catch (error) {
+        console.error('Failed to send email notification:', error);
+        toast.warning('Order created but email notification failed'); 
+    }
+}
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        const formDataToSend = new FormData();
+        formDataToSend.append('orderType', orderType);
+        formDataToSend.append('academicLevel', academicLevel);
+        formDataToSend.append('writingLevel', writingLevel);
+        formDataToSend.append('course', selectedCourse);
+        formDataToSend.append('service', selectedServices);
+        formDataToSend.append('spacing', spacing);
+        formDataToSend.append(
+            'deadline',
+            deadline ? deadline.toISOString() : ''
+        );
+
+        Object.keys(formData).forEach((key) => {
+            formDataToSend.append(key, formData[key]);
+        });
+
+        if (file) {
+            formDataToSend.append('file', file);
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+
+            const response = await axios.post(
+                'http://localhost:3001/orders',
+                formDataToSend,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data'
+                    }
+                }
+            );
+
+            if (response.data.success) {
+                await sendEmailNotification(response.data);
+                toast.success('Order created Successfully!');
+                navigate('/dashboard/my-orders');
+            }
+        } catch (error) {
+            toast.error(
+                error.response?.data?.message || 'Failed to create order'
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleDrop = (event) => {
         event.preventDefault();
@@ -27,9 +133,9 @@ function CreateOrder() {
         event.preventDefault();
     };
 
-    const handleCreateOrder = () => {
-        navigate('/dashboard/create-order');
-    };
+    // const handleCreateOrder = () => {
+    //     navigate('/dashboard/create-order');
+    // };
 
     const courses = [
         'Select a course',
@@ -129,415 +235,422 @@ function CreateOrder() {
     return (
         <div className="max-w-4xl">
             <h1 className="text-3xl font-bold mb-8">Select Your Order Type</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <button
-                    className={`p-6 rounded-lg text-left ${
-                        orderType === 'non-technical'
-                            ? 'bg-gray-700'
-                            : 'bg-gray-800'
-                    }`}
-                    onClick={() => setOrderType('non-technical')}
-                >
-                    <h3 className="text-xl font-bold mb-2">
-                        Non-Technical Assignment
-                    </h3>
-                    <p className="text-sm opacity-80">
-                        Essays, research papers, and other written assignments
-                    </p>
-                </button>
+            <form onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <button
+                        type="button"
+                        className={`p-6 rounded-lg text-left ${
+                            orderType === 'non-technical'
+                                ? 'bg-gray-700'
+                                : 'bg-gray-800'
+                        }`}
+                        onClick={() => setOrderType('non-technical')}
+                    >
+                        <h3 className="text-xl font-bold mb-2">
+                            Non-Technical Assignment
+                        </h3>
+                        <p className="text-sm opacity-80">
+                            Essays, research papers, and other written
+                            assignments
+                        </p>
+                    </button>
 
-                <button
-                    className={`p-6 rounded-lg text-left ${
-                        orderType === 'technical'
-                            ? 'bg-gray-700'
-                            : 'bg-gray-800'
-                    }`}
-                    onClick={() => setOrderType('technical')}
-                >
-                    <h3 className="text-xl font-bold mb-2">
-                        Technical Assignment
-                    </h3>
-                    <p className="text-sm opacity-80">
-                        Dashboard assignments, quizzes, coding tasks, and
-                        technical coursework
-                    </p>
-                </button>
-            </div>
-            {orderType === 'non-technical' && (
-                <div>
-                    <h2 className="text-2xl font-bold mb-6">
-                        Create Essay Order
-                    </h2>
+                    <button
+                        type="button"
+                        className={`p-6 rounded-lg text-left ${
+                            orderType === 'technical'
+                                ? 'bg-gray-700'
+                                : 'bg-gray-800'
+                        }`}
+                        onClick={() => setOrderType('technical')}
+                    >
+                        <h3 className="text-xl font-bold mb-2">
+                            Technical Assignment
+                        </h3>
+                        <p className="text-sm opacity-80">
+                            Dashboard assignments, quizzes, coding tasks, and
+                            technical coursework
+                        </p>
+                    </button>
+                </div>
 
-                    <div className="space-y-6">
-                        <div>
-                            <label className="block text-lg font-semibold mb-4">
-                                Select Academic Level
-                            </label>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {[
-                                    'High School',
-                                    'Undergraduate',
-                                    'Masters',
-                                    'PhD'
-                                ].map((level) => (
-                                    <button
-                                        key={level}
-                                        className={`px-4 py-2 rounded-lg ${
-                                            academicLevel === level
-                                                ? 'bg-blue-500 text-white'
-                                                : 'bg-gray-800 hover:bg-gray-700'
-                                        }`}
-                                        onClick={() => setAcademicLevel(level)}
-                                    >
-                                        {level}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                {orderType === 'non-technical' && (
+                    <div>
+                        <h2 className="text-2xl font-bold mb-6">
+                            Create Essay Order
+                        </h2>
 
-                        <div>
-                            <label className="block text-lg font-semibold mb-4">
-                                Title
-                            </label>
-                            <input
-                                type="text"
-                                placeholder="Enter Your essay title"
-                                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-lg font-semibold mb-4">
-                                Select Your Course
-                            </label>
-                            <select
-                                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
-                                value={selectedCourse}
-                                onChange={(e) =>
-                                    setSelectedCourse(e.target.value)
-                                }
-                            >
-                                <option value="" disabled>
-                                    Choose Subject Area
-                                </option>
-                                {courses.map((course) => (
-                                    <option key={course} value={course}>
-                                        {course}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-lg font-semibold mb-4">
-                                Select Service
-                            </label>
-                            <select
-                                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
-                                value={selectedServices}
-                                onChange={(e) =>
-                                    setSelectedServices(e.target.value)
-                                }
-                            >
-                                <option value="" disabled>
-                                    Choose Service
-                                </option>
-                                {services.map((service) => (
-                                    <option key={service} value={service}>
-                                        {service}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-lg font-semibold mb-4">
-                                Writing Requirements
-                            </label>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {[
-                                    'APA',
-                                    'MLA',
-                                    'Havard',
-                                    'Chicago',
-                                    'Turabian',
-                                    'Other'
-                                ].map((level) => (
-                                    <button
-                                        key={level}
-                                        className={`px-4 py-2 rounded-lg ${
-                                            writingLevel === level
-                                                ? 'bg-blue-500 text-white'
-                                                : 'bg-gray-800 hover:bg-gray-700'
-                                        }`}
-                                        onClick={() => setWritingLevel(level)}
-                                    >
-                                        {level}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-lg font-semibold mb-4">
-                                Spacing
-                            </label>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {['Single Spacing', 'Double Spacing'].map(
-                                    (level) => (
+                        <div className="space-y-6">
+                            <div>
+                                <label className="block text-lg font-semibold mb-4">
+                                    Select Academic Level
+                                </label>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {[
+                                        'High School',
+                                        'Undergraduate',
+                                        'Masters',
+                                        'PhD'
+                                    ].map((level) => (
                                         <button
+                                            type="button"
                                             key={level}
                                             className={`px-4 py-2 rounded-lg ${
-                                                spacing === level
+                                                academicLevel === level
                                                     ? 'bg-blue-500 text-white'
                                                     : 'bg-gray-800 hover:bg-gray-700'
                                             }`}
-                                            onClick={() => setSpacing(level)}
+                                            onClick={() =>
+                                                setAcademicLevel(level)
+                                            }
                                         >
                                             {level}
                                         </button>
-                                    )
-                                )}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        <div>
-                            <label className="block text-lg font-semibold mb-4">
-                                Paper Description
-                            </label>
-                            <textarea
-                                placeholder="Enter Paper Description"
-                                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg h-32"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-lg font-semibold mb-4">
-                                Deadline
-                            </label>
-                            <input
-                                type="date"
-                                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-lg font-semibold mb-4">
-                                Enter the number of Pages
-                            </label>
-                            <input
-                                type="number"
-                                defaultValue={0}
-                                min={0}
-                                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
-                            />
-                            <p className="text-white text-sm pt-2">
-                                One page is approximately 275 words
-                            </p>
-                        </div>
-
-                        <div>
-                            <label className="block text-lg font-semibold mb-4">
-                                Essay Details
-                            </label>
-                            <p className="text-white text-sm mb-2">
-                                Description
-                            </p>
-                            <textarea
-                                placeholder="Describe your essay requirements in details"
-                                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg h-32"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-lg font-semibold mb-4">
-                                Price
-                            </label>
-                            <input
-                                type="number"
-                                defaultValue={250}
-                                min={250}
-                                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
-                            />
-                            <p className="text-white text-sm pt-2">
-                                Min: KES 250
-                            </p>
-                        </div>
-
-                        <div className="w-full">
-                            <DatePicker
-                                selected={deadline}
-                                onChange={(date) => setDeadline(date)}
-                                minDate={new Date()}
-                                dateFormat="yyyy-MM-dd"
-                                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
-                                placeholderText="Select deadline"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-lg font-semibold my-4">
-                                Essay Details
-                            </label>
-                            <div
-                                className="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center cursor-pointer bg-gray-900 text-white"
-                                onDrop={handleDrop}
-                                onDragOver={preventDefault}
-                                onDragEnter={preventDefault}
-                                onDragLeave={preventDefault}
-                            >
-                                <input
-                                    type="file"
-                                    id="fileInput"
-                                    className="hidden"
-                                    onChange={handleFileChange}
-                                />
-                                <label
-                                    htmlFor="fileInput"
-                                    className="block cursor-pointer"
-                                >
-                                    <p className="text-lg font-semibold">
-                                        Drag and Drop your files
-                                    </p>
-                                    <p className="text-sm text-gray-400 mt-2">
-                                        Or Click here to upload
-                                    </p>
+                            <div>
+                                <label className="block text-lg font-semibold mb-4">
+                                    Title
                                 </label>
-                                {file && (
-                                    <p className="text-green-400 mt-4">
-                                        Selected File: {file.name}
-                                    </p>
-                                )}
+                                <input
+                                    type="text"
+                                    name="title"
+                                    placeholder="Enter Your essay title"
+                                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
+                                    value={formData.title}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-lg font-semibold mb-4">
+                                    Select Your Course
+                                </label>
+                                <select
+                                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
+                                    value={selectedCourse}
+                                    onChange={(e) =>
+                                        setSelectedCourse(e.target.value)
+                                    }
+                                    required
+                                >
+                                    {courses.map((course) => (
+                                        <option key={course} value={course}>
+                                            {course}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-lg font-semibold mb-4">
+                                    Select Service
+                                </label>
+                                <select
+                                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
+                                    value={selectedServices}
+                                    onChange={(e) =>
+                                        setSelectedServices(e.target.value)
+                                    }
+                                    required
+                                >
+                                    {services.map((service) => (
+                                        <option key={service} value={service}>
+                                            {service}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-lg font-semibold mb-4">
+                                    Writing Requirements
+                                </label>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {[
+                                        'APA',
+                                        'MLA',
+                                        'Harvard',
+                                        'Chicago',
+                                        'Turabian',
+                                        'Other'
+                                    ].map((level) => (
+                                        <button
+                                            type="button"
+                                            key={level}
+                                            className={`px-4 py-2 rounded-lg ${
+                                                writingLevel === level
+                                                    ? 'bg-blue-500 text-white'
+                                                    : 'bg-gray-800 hover:bg-gray-700'
+                                            }`}
+                                            onClick={() =>
+                                                setWritingLevel(level)
+                                            }
+                                        >
+                                            {level}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-lg font-semibold mb-4">
+                                    Spacing
+                                </label>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {['Single Spacing', 'Double Spacing'].map(
+                                        (level) => (
+                                            <button
+                                                type="button"
+                                                key={level}
+                                                className={`px-4 py-2 rounded-lg ${
+                                                    spacing === level
+                                                        ? 'bg-blue-500 text-white'
+                                                        : 'bg-gray-800 hover:bg-gray-700'
+                                                }`}
+                                                onClick={() =>
+                                                    setSpacing(level)
+                                                }
+                                            >
+                                                {level}
+                                            </button>
+                                        )
+                                    )}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-lg font-semibold mb-4">
+                                    Paper Description
+                                </label>
+                                <textarea
+                                    name="description"
+                                    placeholder="Enter Paper Description"
+                                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg h-32"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </div>
+
+                            <div className="w-full">
+                                <label className="block text-lg font-semibold mb-4">
+                                    Deadline
+                                </label>
+                                <DatePicker
+                                    selected={deadline}
+                                    onChange={(date) => setDeadline(date)}
+                                    showTimeSelect
+                                    timeFormat="HH:mm"
+                                    timeIntervals={15}
+                                    timeCaption="time"
+                                    dateFormat="MMMM d, yyyy h:mm aa"
+                                    minDate={new Date()}
+                                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
+                                    placeholderText="Select deadline"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-lg font-semibold mb-4">
+                                    Price (KES)
+                                </label>
+                                <input
+                                    type="number"
+                                    name="price"
+                                    min="250"
+                                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
+                                    value={formData.price}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                                <p className="text-white text-sm pt-2">
+                                    Min: KES 250
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-lg font-semibold mb-4">
+                                    Upload Files
+                                </label>
+                                <div
+                                    className="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center cursor-pointer bg-gray-900 text-white"
+                                    onDrop={handleDrop}
+                                    onDragOver={preventDefault}
+                                    onDragEnter={preventDefault}
+                                    onDragLeave={preventDefault}
+                                >
+                                    <input
+                                        type="file"
+                                        id="fileInput"
+                                        className="hidden"
+                                        onChange={handleFileChange}
+                                    />
+                                    <label
+                                        htmlFor="fileInput"
+                                        className="block cursor-pointer"
+                                    >
+                                        <p className="text-lg font-semibold">
+                                            Drag and Drop your files
+                                        </p>
+                                        <p className="text-sm text-gray-400 mt-2">
+                                            Or Click here to upload
+                                        </p>
+                                    </label>
+                                    {file && (
+                                        <p className="text-green-400 mt-4">
+                                            Selected File: {file.name}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
                         </div>
-
-                        <button
-                            onClick={handleCreateOrder}
-                            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
-                        >
-                            Create Order
-                        </button>
                     </div>
-                </div>
-            )}
+                )}
 
-            {orderType === 'technical' && (
-                <div>
-                    <h2 className="text-2xl font-bold mb-6">
-                        Create Technical Assignment
-                    </h2>
+                {orderType === 'technical' && (
+                    <div>
+                        <h2 className="text-2xl font-bold mb-6">
+                            Create Technical Assignment
+                        </h2>
 
-                    <div className="space-y-6">
-                        <div>
-                            <label className="block text-lg font-semibold ">
-                                Basic Information
-                            </label>
-                            <p className="text-white text-sm mt-3 mb-1">
-                                Title
-                            </p>
-                            <input
-                                type="text"
-                                placeholder="Enter Your essay title"
-                                className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
-                            />
+                        <div className="space-y-6">
+                            <div>
+                                <label className="block text-lg font-semibold mb-4">
+                                    Title
+                                </label>
+                                <input
+                                    type="text"
+                                    name="title"
+                                    placeholder="Enter assignment title"
+                                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
+                                    value={formData.title}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-lg font-semibold mb-4">
+                                    Description
+                                </label>
+                                <textarea
+                                    name="description"
+                                    placeholder="Describe your technical assignment requirements"
+                                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg h-32"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </div>
+
+                            <div className="w-full">
+                                <label className="block text-lg font-semibold mb-4">
+                                    Deadline
+                                </label>
+                                <DatePicker
+                                    selected={deadline}
+                                    onChange={(date) => setDeadline(date)}
+                                    showTimeSelect
+                                    timeFormat="HH:mm"
+                                    timeIntervals={15}
+                                    timeCaption="time"
+                                    dateFormat="MMMM d, yyyy h:mm aa"
+                                    minDate={new Date()}
+                                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
+                                    placeholderText="Select deadline"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-lg font-semibold mb-4">
+                                    Price (KES)
+                                </label>
+                                <input
+                                    type="number"
+                                    name="price"
+                                    min="250"
+                                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
+                                    value={formData.price}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                                <p className="text-white text-sm pt-2">
+                                    Min: KES 250
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-lg font-semibold mb-4">
+                                    Amount of Tasks
+                                </label>
+                                <input
+                                    type="number"
+                                    name="amount"
+                                    min="1"
+                                    className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
+                                    value={formData.amount}
+                                    onChange={handleInputChange}
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-lg font-semibold mb-4">
+                                    Upload Files
+                                </label>
+                                <div
+                                    className="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center cursor-pointer bg-gray-900 text-white"
+                                    onDrop={handleDrop}
+                                    onDragOver={preventDefault}
+                                    onDragEnter={preventDefault}
+                                    onDragLeave={preventDefault}
+                                >
+                                    <input
+                                        type="file"
+                                        id="fileInput"
+                                        className="hidden"
+                                        onChange={handleFileChange}
+                                    />
+                                    <label
+                                        htmlFor="fileInput"
+                                        className="block cursor-pointer"
+                                    >
+                                        <p className="text-lg font-semibold">
+                                            Drag and Drop your files
+                                        </p>
+                                        <p className="text-sm text-gray-400 mt-2">
+                                            Or Click here to upload
+                                        </p>
+                                    </label>
+                                    {file && (
+                                        <p className="text-green-400 mt-4">
+                                            Selected File: {file.name}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
+                )}
 
-                    <div>
-                        <label className="block text-lg font-semibold mt-6 mb-1">
-                            Essay Details
-                        </label>
-                        <p className="text-white text-sm mb-2">Description</p>
-                        <textarea
-                            placeholder="Describe your essay requirements in details"
-                            className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg h-32"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-lg font-semibold mt-6 mb-1">
-                            Price
-                        </label>
-                        <input
-                            type="number"
-                            defaultValue={250}
-                            min={250}
-                            className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
-                        />
-                        <p className="text-white text-sm mt-6 mb-1">
-                            Min: KES 250
-                        </p>
-                    </div>
-
-                    <div className="w-full">
-                        <DatePicker
-                            selected={deadline}
-                            onChange={(date) => setDeadline(date)}
-                            minDate={new Date()}
-                            dateFormat="yyyy-MM-dd"
-                            className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
-                            placeholderText="Select deadline"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-lg font-semibold mt-6 mb-1">
-                            Amount of Assignment
-                        </label>
-                        <p className="text-white text-sm mb-2">Amount</p>
-                        <input
-                            type="number"
-                            defaultValue={1}
-                            min={1}
-                            className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg"
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-lg font-semibold mt-6 mb-1">
-                            Essay Details
-                        </label>
-                        <div
-                            className="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center cursor-pointer bg-gray-900 text-white"
-                            onDrop={handleDrop}
-                            onDragOver={preventDefault}
-                            onDragEnter={preventDefault}
-                            onDragLeave={preventDefault}
-                        >
-                            <input
-                                type="file"
-                                id="fileInput"
-                                className="hidden"
-                                onChange={handleFileChange}
-                            />
-                            <label
-                                htmlFor="fileInput"
-                                className="block cursor-pointer"
-                            >
-                                <p className="text-lg font-semibold">
-                                    Drag and Drop your files
-                                </p>
-                                <p className="text-sm text-gray-400 mt-2">
-                                    Or Click here to upload
-                                </p>
-                            </label>
-                            {file && (
-                                <p className="text-green-400 mt-4">
-                                    Selected File: {file.name}
-                                </p>
-                            )}
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={handleCreateOrder}
-                        className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
-                    >
-                        Create Assignment
-                    </button>
-                </div>
-            )}
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className={`w-full mt-6 py-3 rounded-lg text-white font-semibold ${
+                        loading
+                            ? 'bg-blue-400 cursor-not-allowed'
+                            : 'bg-blue-500 hover:bg-blue-600'
+                    }`}
+                >
+                    {loading ? 'Creating Order...' : 'Create Order'}
+                </button>
+            </form>
         </div>
     );
 }

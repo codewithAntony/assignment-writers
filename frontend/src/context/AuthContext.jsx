@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         localStorage.removeItem('token');
         setIsAuthenticated(false);
-        navigate('/');
+        navigate('/', { replace: true });
     };
 
     return (

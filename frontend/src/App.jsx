@@ -17,27 +17,39 @@ function App() {
     return (
         <Router>
             <AuthProvider>
-                <ToastContainer />
-                <Routes>
-                    <Route path="/login" element={<LoginForm />} />
-                    <Route path="/signup" element={<Signup />} />
-                    <Route path="/" element={<Home />} />
+                <div className="min-h-screen bg-white">
+                    <ToastContainer />
+                    <Routes>
+                        <Route path="/login" element={<LoginForm />} />
+                        <Route path="/signup" element={<Signup />} />
+                        <Route path="/" element={<Home />} />
 
-                    <Route
-                        path="/dashboard"
-                        element={
-                            <ProtectedRoute>
-                                <Layout />
-                            </ProtectedRoute>
-                        }
-                    >
-                        <Route index element={<Dashboard />} />
-                        <Route path="wallet" element={<Wallet />} />
-                        <Route path="my-orders" element={<MyOrders />} />
-                        <Route path="create-order" element={<CreateOrder />} />
-                        <Route path="messages" element={<Messages />} />
-                    </Route>
-                </Routes>
+                        <Route element={<ProtectedRoute />}>
+                            <Route element={<Layout />}>
+                                <Route
+                                    path="/dashboard"
+                                    element={<Dashboard />}
+                                />
+                                <Route
+                                    path="/dashboard/wallet"
+                                    element={<Wallet />}
+                                />
+                                <Route
+                                    path="/dashboard/my-orders"
+                                    element={<MyOrders />}
+                                />
+                                <Route
+                                    path="/dashboard/create-order"
+                                    element={<CreateOrder />}
+                                />
+                                <Route
+                                    path="/dashboard/messages"
+                                    element={<Messages />}
+                                />
+                            </Route>
+                        </Route>
+                    </Routes>
+                </div>
             </AuthProvider>
         </Router>
     );
