@@ -19,6 +19,10 @@ const ClientSchema = new mongoose.Schema(
             type: String,
             required: true,
             minLength: 6
+        },
+        isAdmin: {
+            type: Boolean,
+            default: false
         }
     },
     {

@@ -12,6 +12,9 @@ import Messages from './pages/Messages';
 import CreateOrder from './pages/CreateOrder';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminDashboard from './pages/AdminDashboard';
+// import EditOrder from './components/EditOrder';
+// import OrderDetails from './components/OrderDetails';
 
 function App() {
     return (
@@ -38,6 +41,14 @@ function App() {
                                     path="/dashboard/my-orders"
                                     element={<MyOrders />}
                                 />
+                                {/* <Route
+                                    path="/dashboard/orders/:id"
+                                    element={<OrderDetails />}
+                                />
+                                <Route
+                                    path="/dashboard/order/:id/edit"
+                                    element={<EditOrder />}
+                                /> */}
                                 <Route
                                     path="/dashboard/create-order"
                                     element={<CreateOrder />}
@@ -47,6 +58,11 @@ function App() {
                                     element={<Messages />}
                                 />
                             </Route>
+
+                            <Route
+                                path="/admin/dashboard"
+                                element={<AdminDashboard />}
+                            />
                         </Route>
                     </Routes>
                 </div>

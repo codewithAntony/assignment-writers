@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const { body, validationResult } = require('express-validator');
 const ClientModel = require('./models/Client');
+const Order = require('./models/Order');
 
 const app = express();
 app.use(express.json());
@@ -53,18 +54,43 @@ const upload = multer({ storage: storage });
 
 //middleware
 const verifyToken = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
+    if (!authHeader?.startsWith('Bearer ')) {
+        console.log('No token provided');
         return res.status(401).json({ message: 'No token provided' });
     }
 
+    const token = authHeader.split(' ')[1];
+
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log('Decoded token:', decoded);
         req.userId = decoded.userId;
         next();
     } catch (error) {
-        return res.status(401).json({ message: 'Invalid token' });
+        console.error('Token verification failed:', error.message);
+
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ message: 'Token expired' });
+        }
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+
+        res.status(401).json({ message: 'Not authorized' });
+    }
+};
+
+const isAdmin = async (req, res, next) => {
+    try {
+        const user = await ClientModel.findById(req.userId);
+        if (!user || !user.isAdmin) {
+            return res.status(403).json({ message: 'Admin access required' });
+        }
+        next();
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -133,7 +159,8 @@ app.post('/login', validateLogin, async (req, res) => {
 
         res.json({
             message: 'Login Successful',
-            token
+            token,
+            isAdmin: user.isAdmin
         });
     } catch (error) {
         console.error('Login error:', error);
@@ -163,7 +190,8 @@ app.post('/orders', verifyToken, upload.single('file'), async (req, res) => {
             deadline: new Date(req.body.deadline),
             price: Number(req.body.price),
             amount: Number(req.body.amount) || 1,
-            fileUrl: req.file ? req.file.path : undefined
+            fileUrl: req.file ? req.file.path : undefined,
+            status: 'pending'
         };
 
         const order = new Order(orderData);
@@ -191,6 +219,90 @@ app.get('/orders', verifyToken, async (req, res) => {
     } catch (error) {
         console.error('Failed to fetch orders:', error);
         res.status(500).json({ message: 'Failed to fetch orders' });
+    }
+});
+
+// app.get('/orders/:id', verifyToken, async (req, res) => {
+//     try {
+//         const order = await Order.findById(req.params.id).populate(
+//             'user',
+//             'name email'
+//         );
+//         if (!order) {
+//             return res.status(404).json({ message: 'Order not found' });
+//         }
+//         res.json(order);
+//     } catch (error) {
+//         res.status(500).json({ message: 'Failed to fetch order' });
+//     }
+// });
+
+// app.put('/orders/:id', verifyToken, async (req, res) => {
+//     try {
+//         const updatedOrder = await Order.findByIdAndUpdate(
+//             req.params.id,
+//             req.body,
+//             { new: true }
+//         );
+//         res.json();
+//     } catch (error) {
+//         res.status(500).json({ message: 'Failed to update order' });
+//     }
+// });
+
+app.get('/admin/orders', verifyToken, isAdmin, async (req, res) => {
+    try {
+        console.log('Fetching orders for admin:', req.userId);
+
+        const orders = await Order.find()
+            .populate('user', 'name email')
+            .select(
+                'orderType academicLevel writingLevel title description deadline price amount status'
+            )
+            .sort({ createdAt: -1 });
+
+        console.log('Found orders:', orders.length);
+
+        if (!orders || orders.length === 0) {
+            console.log('No orders found in database');
+            return res.status(200).json([]);
+        }
+
+        res.json(orders);
+    } catch (error) {
+        console.error('Admin orders error:', error);
+        res.status(500).json({
+            message: 'Failed to fetch orders',
+            error: error.message
+        });
+    }
+});
+
+app.patch('/admin/orders/:id', verifyToken, isAdmin, async (req, res) => {
+    try {
+        const { status } = req.body;
+        const order = await Order.findByIdAndUpdate(
+            req.params.id,
+            { status },
+            { new: true }
+        );
+        res.json(order);
+    } catch (error) {
+        console.error('Failed to update order:', error);
+        res.status(500).json({ message: 'Failed to update order' });
+    }
+});
+
+app.get('/api/user/me', verifyToken, async (req, res) => {
+    try {
+        const user = await ClientModel.findById(req.userId).select('-password');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json(user);
+    } catch (error) {
+        console.error('Error checking admin status:', error);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 

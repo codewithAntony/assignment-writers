@@ -12,3 +12,56 @@ body {
     background: #111827;
     color: white;
 }
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+.order-progress {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 20px 0;
+}
+
+.order-progress::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #e5e7eb;
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+.order-progress-step {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.order-progress-step.active .step-number {
+    background: #3b82f6;
+    color: white;
+}
+
+.step-number {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+}

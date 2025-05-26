@@ -37,7 +37,22 @@ const LoginForm = () => {
             if (response.data.token) {
                 login(response.data.token);
                 toast.success('Login successful!');
-                const from = location.state?.from?.pathname || '/dashboard';
+
+                // check if user is admin
+                const userResponse = await axios.get(
+                    'http://localhost:3001/api/user/me',
+                    {
+                        headers: {
+                            Authorization: `Bearer ${response.data.token}`
+                        }
+                    }
+                );
+
+                const isAdmin = userResponse.data.isAdmin;
+                const from =
+                    location.state?.from?.pathname ||
+                    (isAdmin ? '/admin/dashboard' : '/dashboard');
+
                 setTimeout(() => navigate(from), 1500);
             }
         } catch (error) {
